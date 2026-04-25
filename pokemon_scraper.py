@@ -1,3 +1,9 @@
+# This program intends to pull html data from https://www.serebii.net/fireredleafgreen/kantopokedex.shtml
+# Using BeautifulSoup to parse html data grabbing rows relating to Pokemon data
+# Cleaning individual row data and structuring data into a dictionary
+# Pokemon dictionary stores data for all pokemon in Kanto Pokedex
+
+
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
@@ -8,43 +14,46 @@ url = 'https://www.serebii.net/fireredleafgreen/kantopokedex.shtml'
 page = requests.get(url)
 soup = BeautifulSoup(page.text, features='html.parser')
 
-
-# print(soup.find_all('td', class_ = "fooinfo"))
-
 table = soup.find_all('table')[1]
 
-# ------ GET POKEMON NAMES --------------
-pokemon_names = table.find_all('a')
-pokemon_name_table = [name.text.strip() for name in pokemon_names]
-
-while "" in pokemon_name_table:
-    pokemon_name_table.remove("")
+pokemon_data = table.find_all('tr', recursive =False)[1:]       # get all rows inside table but not recursive - to keep rows modular and consistent
 
 
-p_names = []
-for i in pokemon_name_table:
-    try: 
-        i.encode(encoding='utf-8').decode('ascii')      # if character contains Jpanese characters
- 
+data = []   # stores all rows for each pokemon
+for row in pokemon_data[1:]:
+    row_data = row.find_all('td')   # find each td in each row
+
+    individual_row_data = [data.text.strip() for data in row_data] # clean text in each piece of data in row
+    data.append(individual_row_data)                               # append cleaned row data to list
+
+# remove empty items from list
+for row in data:
+    while "" in row:
+        row.remove("")
+
+# remove Japanese characters from pokmemon names
+for row in data:
+    try:
+        row[1].encode(encoding='utf-8').decode('ascii')
+    
     except UnicodeDecodeError:
-        i = i.encode('ascii', 'ignore').decode()        # ignore japanese chars
-        p_names.append(i)
+        row[1] = row[1].encode('ascii', 'ignore').decode()
 
 
-# ------ GET POKEMON IDs --------------
-pokemon_table = table.find_all('td')
-pokemon_table = [i.text.strip() for i in pokemon_table]
-p_id = [i for i in pokemon_table if '#' in i]
+pokemon = []
+# create dictionary to store and format data in key:value pairs for each pokemon
+for p in data:
+    pokemon.append({
+        'Pokedex ID': p[0],
+        'Name': p[1],
+        'Abilities': p[2],
+        'HP': p[3],
+        'Att': p[4],
+        'Def': p[5],
+        'S.Att': p[6],
+        'S.Def': p[7],
+        'Spd': p[8]
+    })
+   
 
-# ------ GET POKEMON TITLES --------------
-p_titles = pokemon_table[:12]       # get all titles (first 12 table items)
-remove_titles = ['Pic', 'Abilities', 'Base Stats', 'HP', 'Att', 'Def', 'S.Att', 'S.Def', 'Spd']         # the titles to be removed
-p_titles = [i for i in p_titles if i not in remove_titles]              # keep titles not in the remove list
 
-# ------ GET POKEMON TYPES --------------
-
-table2 = soup.find_all('table')[1]
-pokemon_type = table2.find_all('tr', recursive =False)[1:]
-
-
-print(pokemon_type[2])
