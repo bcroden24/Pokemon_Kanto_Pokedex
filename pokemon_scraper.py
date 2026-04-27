@@ -18,13 +18,36 @@ table = soup.find_all('table')[1]
 
 pokemon_data = table.find_all('tr', recursive =False)[1:]       # get all rows inside table but not recursive - to keep rows modular and consistent
 
+# print(pokemon_data)
 
 data = []   # stores all rows for each pokemon
 for row in pokemon_data[1:]:
     row_data = row.find_all('td')   # find each td in each row
 
+
     individual_row_data = [data.text.strip() for data in row_data] # clean text in each piece of data in row
+
+
+    # get images and format them to keep only the type text
+    # add to a nested types list and apppend to the final indicidual row list
+    type_data = row.find_all('img')
+    types = []
+    for img in type_data:
+        
+        if img.get('src').endswith('gif'):
+            # print(img.get('src'))
+            types.append(img.get('src').split("/")[3].removesuffix('.gif'))
+            individual_row_data.append(types)
+
     data.append(individual_row_data)                               # append cleaned row data to list
+
+# if type nested list length is greater than 2 then remove it
+# this is to remove duplicated nested type list from the row
+for row in data:
+    if(len(row[-1]) == 2):
+        row.pop()
+
+        
 
 # remove empty items from list
 for row in data:
@@ -52,7 +75,8 @@ for p in data:
         'Def': p[5],
         'S.Att': p[6],
         'S.Def': p[7],
-        'Spd': p[8]
+        'Spd': p[8],
+        'Types': p[9]
     })
    
 
