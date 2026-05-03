@@ -35,8 +35,7 @@ for row in pokemon_data[1:]:
     for img in type_data:
         
         if img.get('src').endswith('gif'):
-            # print(img.get('src'))
-            types.append(img.get('src').split("/")[3].removesuffix('.gif'))
+            types.append(img.get('src').split("/")[3].removesuffix('.gif').capitalize())
             individual_row_data.append(types)
 
     data.append(individual_row_data)                               # append cleaned row data to list
