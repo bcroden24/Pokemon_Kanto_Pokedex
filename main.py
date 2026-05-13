@@ -1,51 +1,57 @@
-from pokemon_scraper import pokemon
-from constants import DATABASE_URL
-import pandas as pd
-from sqlalchemy import create_engine
+from database import *
+from types_matrix import *
+from collections import Counter
 
-#import the pokemon dict from scraper program
-pokemon_data = pokemon
+# create_database_load_data()
 
-# get the headers
-headers = pokemon_data[0].keys()
-
-# create dataframe to store pokemon data
-df = pd.DataFrame(pokemon_data)
-
-# type conversions
-df['HP'] = df['HP'].astype('Int32')
-df['Att'] = df['Att'].astype('Int32')
-df['Def'] = df['Def'].astype('Int32')
-df['S.Att'] = df['S.Att'].astype('Int32')
-df['S.Def'] = df['S.Def'].astype('Int32')
-df['Spd'] = df['Spd'].astype('Int32')
-
-# create sql engine
-engine = create_engine(DATABASE_URL)
-
-# connect to db and create kanto pokedex table
-df.to_sql('kanto_pokedex', con=engine, if_exists='replace', index=False)
+# ----- NEXT STEPS - ADD GUI FEATURE i.e bar chart
 
 
+def get_data():
+
+    while True:
+
+        p_name = input("Enter name of your Pokemon:  ").capitalize()
+        p_data = fetch_pokemon_data(p_name)
+
+        if p_data.empty:
+            print("Pokemon Not found. Please try again.")
+        else:
+            # convert from pandas series to a string.
+            # clean string to get only types in a list
+            p_types = p_data['Types'].to_string().partition('{')[2].partition('}')[0].split(',')
+            print("Success!")
+            return p_types
+        
+
+def get_party():
+    party = []
+    # Get party of 6 pokemon
+    while len(party) < 6:
+        party.append(get_data())
+
+    return party
+
+
+# main loop
+
+def main():
+    party = get_party()
+    # party = [['Fire', 'Flying'], ['Electric'], ['Rock', 'Ground'], ['Psychic'], ['Water', 'Ice'], ['Grass', 'Poison']]
+    
+    weakness_results = []
+    for i in party:
+        for j in i:
+            res = check_weakness(j, weakness_matrix)
+            for i in res:
+                weakness_results.append(i)
+
+
+    # print(weakness_results)
+
+    count = Counter(weakness_results)
+    print(count)
 
 
 
-weakness_matrix = {
-    'Bug': ['Fire', 'Flying', 'Rock'],
-    'Dark': ['Bug', 'Fighting'],
-    'Dragon': ['Dragon', 'Ice'],
-    'Electric': ['Ground'],
-    'Fighting': ['Flying', 'Psychic'],
-    'Fire': ['Ground', 'Rock', 'Water'],
-    'Flying': ['Electric', 'Ice', 'Rock'],
-    'Ghost': ['Dark', 'Ghost'],
-    'Grass': ['Bug', 'Fire', 'Flying', 'Ice', 'Poison'],
-    'Ground': ['Grass', 'Ice', 'Water'],
-    'Ice': ['Fighting', 'Fire', 'Rock', 'Steel'],
-    'Normal': ['Fighting'],
-    'Poison': ['Ground', 'Psychic'],
-    'Psychic': ['Bug', 'Dark', 'Ghost'],
-    'Rock': ['Fighting', 'Grass', 'Ground', 'Steel', 'Water'],
-    'Steel': ['Fighting', 'Fire', 'Ground'],
-    'Water': ['Electric', 'Grass']
-    }
+main()

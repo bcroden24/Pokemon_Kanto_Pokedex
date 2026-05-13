@@ -1,3 +1,5 @@
+types_list = ['Bug','Dark','Dragon','Electric','Fighting','Fire','Flying','Ghost','Grass','Ground','Ice','Normal','Poison','Psychic','Rock','Steel','Water']
+
 weakness_matrix = {
     'Bug': ['Fire', 'Flying', 'Rock'],
     'Dark': ['Bug', 'Fighting'],
@@ -31,11 +33,11 @@ def check_strength(t, weakness):
     keys = [k for k, v in weakness.items() if t in v]
     return keys
 
-
+# prints check weakness/strength results
 def get_type_effectiveness(t, weakness):
     weak_against = check_weakness(t, weakness)
     strong_against = check_strength(t, weakness)
 
     print(f"Your Pokemon is strong against {strong_against}\nYour Pokemon is weak against {weak_against}")
 
-get_type_effectiveness('Water', weakness_matrix)
+# get_type_effectiveness('Water', weakness_matrix)
